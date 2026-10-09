@@ -1,0 +1,24 @@
+{
+  "name": "instant-expert-skills",
+  "description": "Agent skills from Instant Expert: ask real human experts (executives, operators, domain specialists) a question and get a written or voice answer or a short call. Pay only if they answer.",
+  "owner": {
+    "name": "Instant Expert",
+    "email": "team@instant.expert",
+    "url": "https://instant.expert"
+  },
+  "plugins": [
+    {
+      "name": "ask-human-expert",
+      "source": "./",
+      "description": "Ask real human experts, or one named person, a question for a written or voice answer or a short paid call. Starts in free test mode with no account; pay only if they answer.",
+      "category": "productivity",
+      "tags": [
+        "human-in-the-loop",
+        "experts",
+        "customer-discovery",
+        "user-research",
+        "expert-calls"
+      ]
+    }
+  ]
+}
