@@ -20,6 +20,8 @@
 # readable only by you. Requires curl. Uses jq or node to print just the tool
 # result when one is installed; otherwise prints the raw JSON-RPC response.
 set -euo pipefail
+# Command substitutions don't inherit `set -e` (and macOS ships bash 3.2,
+# which has no inherit_errexit), so each one that can fail ends in `|| exit 1`.
 
 BASE_URL="https://instant.expert"
 MCP_URL="$BASE_URL/mcp/test"
@@ -66,7 +68,7 @@ call_tool() {
   fi
   local body response
   body="{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"$tool\",\"arguments\":$args}}"
-  response="$(post "$body")"
+  response="$(post "$body")" || exit 1
   printf '%s\n' "$response" | print_result
   # Tool errors arrive as a successful HTTP response flagged isError; exit
   # non-zero so the calling agent notices.
@@ -75,7 +77,7 @@ call_tool() {
 
 list_tools() {
   local response
-  response="$(post '{"jsonrpc":"2.0","id":1,"method":"tools/list"}')"
+  response="$(post '{"jsonrpc":"2.0","id":1,"method":"tools/list"}')" || exit 1
   if command -v jq >/dev/null 2>&1; then
     printf '%s' "$response" | jq -r '.result.tools[] | "\(.name)\t\(.title // "")"'
   else
@@ -94,8 +96,8 @@ sandbox() {
   status="${response##*$'\n'}"
   response="${response%$'\n'*}"
   if [[ "$status" != 2* ]]; then
-    echo "Could not start a sandbox (HTTP $status): $response" >&2
-    echo "Each network can create a few sandboxes an hour; reuse the saved one or wait." >&2
+    echo "Could not start a sandbox (HTTP $status): ${response:0:300}" >&2
+    echo "Each network can start 5 sandboxes an hour; reuse the saved one or try again later." >&2
     exit 1
   fi
   mkdir -p "$STATE_DIR"
@@ -113,7 +115,7 @@ sandbox() {
 # stateless, so no initialize handshake or session header is needed.
 post() {
   local token response status
-  token="$(sandbox_token)"
+  token="$(sandbox_token)" || exit 1
   response="$(curl -sS -X POST "$MCP_URL" \
     -H "Authorization: Bearer $token" \
     -H "Content-Type: application/json" \
@@ -134,7 +136,7 @@ post() {
       exit 1
       ;;
     *)
-      echo "HTTP $status from $MCP_URL: $response" >&2
+      echo "HTTP $status from $MCP_URL: ${response:0:300}" >&2
       exit 1
       ;;
   esac
@@ -143,7 +145,7 @@ post() {
 # Reads the saved sandbox token, starting a sandbox on first use so that a
 # fresh install works with no setup.
 sandbox_token() {
-  if [ ! -s "$TOKEN_FILE" ]; then sandbox >&2; fi
+  if [ ! -s "$TOKEN_FILE" ]; then sandbox >&2 || exit 1; fi
   json_field token <"$TOKEN_FILE"
 }
 
