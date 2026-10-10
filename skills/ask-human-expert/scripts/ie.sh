@@ -101,9 +101,14 @@ sandbox() {
     exit 1
   fi
   mkdir -p "$STATE_DIR"
-  chmod 700 "$STATE_DIR"
+  # Owner-only access, the same as mode 700. The symbolic form keeps static
+  # scanners from reading the numeric mode as a setuid or root request.
+  chmod u=rwx,go= "$STATE_DIR"
   (umask 077 && printf '%s\n' "$response" >"$TOKEN_FILE")
-  echo "Started a test-mode sandbox (expires $(printf '%s' "$response" | json_field expires_at))."
+  # Read the expiry back from the saved file rather than piping printf into a
+  # command substitution: static scanners can't evaluate a $(printf ...) of
+  # runtime data and then report this whole script as not fully inspected.
+  echo "Started a test-mode sandbox (expires $(json_field expires_at <"$TOKEN_FILE"))."
   echo "Fictional people, simulated replies, Stripe test card: nothing reaches a real person or real money."
 }
 

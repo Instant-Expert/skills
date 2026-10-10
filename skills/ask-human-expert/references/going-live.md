@@ -1,6 +1,8 @@
 # Going live
 
-Test mode is a separate sandbox. To ask real people, the user connects their own Instant Expert account through the MCP server at `https://instant.expert/mcp` (Streamable HTTP, OAuth 2.1 sign-in, no API key). Nothing from test mode carries over.
+**Live mode contacts real people and charges the user's real card.** Each invitation goes from the user's account to a real person. When someone books a call or completes an answer, the card is charged that person's offer plus Instant Expert's fee, up to the total cap in the order preview, and sending places one authorization hold for the largest single offer, fee included. Before every live send, the agent must show the user the order preview and send only after the user explicitly approves it.
+
+Test mode is a separate sandbox with fictional people and a Stripe test card. To ask real people, the user connects their own Instant Expert account through the MCP server at `https://instant.expert/mcp` (Streamable HTTP, OAuth 2.1 sign-in, no API key). Nothing from test mode carries over.
 
 ## 1. Connect the server
 
@@ -28,14 +30,14 @@ openclaw mcp doctor instant-expert --probe
 
 Follow https://instant.expert/docs/mcp#connect. Codex needs `scopes = ["email", "profile"]` in its config, because Instant Expert refuses the `openid` scope.
 
-## 2. Sign in and allow sending
+## 2. Sign in and allow paid sending
 
-The user signs in on instant.expert and approves the connection. A new connection can search, import, draft and read replies. To let the agent place orders, the user also:
+The user signs in on instant.expert and approves the connection. A new connection can search, import, draft and read replies, but can't place paid orders. To let the agent place orders that charge their card, the user also:
 
 1. ticks **Allow paid requests from this assistant** on the consent screen, or turns it on later at https://instant.expert/settings/connections, and
 2. adds a card at https://instant.expert/settings/requesting?tab=account. Saving a card charges nothing. Card details never go through chat.
 
-Without paid sending, the agent prepares drafts and the user sends them from https://instant.expert/requests.
+With paid sending on, the agent must still send only after the user approves the exact order preview. Without it, the agent prepares drafts and the user sends them from https://instant.expert/requests.
 
 ## 3. Use the live tools
 

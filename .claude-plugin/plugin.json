@@ -1,7 +1,7 @@
 {
   "name": "ask-human-expert",
   "displayName": "Ask a Human Expert",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ask real human experts, or one named person, a question for a written or voice answer or a short paid call through Instant Expert. Starts in free test mode with no account; pay only if they answer.",
   "author": {
     "name": "Instant Expert",
